@@ -2,11 +2,15 @@
 #include <SFML/Graphics.hpp>
 #include <arpa/inet.h>
 #include <unistd.h>
+
+#include <csignal>
+
 #include "ClientData.hpp"
 
 #include "Screen.hpp"
 
 #include "AuthScreen.hpp"
+#include "HomeScreen.hpp"
 #include "Constants.hpp"
 
 #define PORT 8080
@@ -42,15 +46,16 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    // to do signal handeling
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
 
     unsigned int current_screen_id = 0;
     vector<Screen *> screen;
 
     screen.push_back(new AuthScreen());
-    screen.push_back(new AuthScreen());
-    for (Screen *s : screen)
-        s->SetFileDescriptor(client_socket);
+    screen.push_back(new HomeScreen());
+    screen.push_back(new HomeScreen());
+    screen[0]->UpdateOnFileDescriptor(client_socket);
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE, Style::Close | Style::Titlebar);
     window.setVerticalSyncEnabled(true);
 
@@ -76,8 +81,17 @@ int main()
                 unsigned int response = screen[current_screen_id]->LogicOnClick(mouse_pos);
                 if (response == LogicCodes::NextScreen)
                 {
+
                     current_screen_id++;
                     current_screen_id %= NO_OF_SCREENS;
+                    screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                }
+                else if (response == LogicCodes::Exit_req)
+                {
+                    window.close();
+                    client_command = Commands::Exit;
+                    send(client_socket, &client_command, sizeof(client_command), 0);
+                    close(client_socket);
                 }
                 break;
             }

@@ -39,6 +39,15 @@ void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int
         sqlite3_close(db);
     }
 }
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), char *result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
 void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **))
 {
     int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, 0, 0);

@@ -6,12 +6,14 @@
 using namespace sf;
 using namespace std;
 
-class RoundedRectangle{
+class RoundedRectangle
+{
     Vector2f pos;
     Vector2f size;
     float rounded_size;
     ConvexShape base;
     CircleShape circles[4];
+
 public:
     RoundedRectangle();
 
@@ -22,9 +24,11 @@ public:
     void SetCornerResolution(unsigned int resolution);
     void SetFillColor(Color color);
     void SetPosition(Vector2f pos);
+    void SetTexture(Texture *texture);
 
     Vector2f GetSize();
     Vector2f GetPosition();
+    Vector2f GetEndPosition();
     Color GetFillColor();
 
     void Draw(RenderWindow &window);

@@ -76,7 +76,7 @@ AuthScreen::AuthScreen()
     error_appeared = false;
 }
 
-void AuthScreen::SetFileDescriptor(int fd)
+void AuthScreen::UpdateOnFileDescriptor(int fd)
 {
     this->fd = fd;
 }
@@ -205,7 +205,7 @@ unsigned int AuthScreen::LogicOnClick(Vector2f mouse_pos)
                 return LogicCodes::NextScreen;
                 break;
             }
-            case LogicCodes::InvalidLoginInfo:
+            case LogicCodes::InvalidRegInfo:
             {
                 error_text.SetString("User already registred");
                 error_background.SetSize(Vector2f(error_text.GetSize().x + 30, error_text.GetSize().y + 30));
