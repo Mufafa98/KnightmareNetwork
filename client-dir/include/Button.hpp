@@ -5,9 +5,11 @@
 
 using namespace sf;
 
-class Button {
+class Button
+{
     Vector2f start_pos, end_pos;
     RoundedRectangle background;
+
 public:
     Button();
 

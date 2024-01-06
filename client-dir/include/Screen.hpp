@@ -18,7 +18,7 @@ using namespace sf;
 class Screen
 {
 public:
-    virtual void SetFileDescriptor(int fd) = 0;
+    virtual void UpdateOnFileDescriptor(int fd) = 0;
 
     virtual void Animate(RenderWindow &window) = 0;
 

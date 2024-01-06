@@ -7,12 +7,13 @@
 #include "Constants.hpp"
 #include "ClientInfo.hpp"
 
-#include "LoginLogic.hpp"
-#include "RegisterLogic.hpp"
+#include "Logic.hpp"
 
 #include "DataBaseLogic.hpp"
 
 #include "CustomUtility.hpp"
+
+#include "Engine.hpp"
 
 #define PORT 8080
 #define MAX_CLIENTS 5
@@ -21,6 +22,9 @@ using namespace std;
 
 void *handle_client(void *client_info_ptr)
 {
+    Engine engine;
+    game_info game;
+    engine.FENToBoard(START_CHESS_POS);
     struct ClientInfo *client_info = static_cast<struct ClientInfo *>(client_info_ptr);
     int client_socket = client_info->socket;
     unsigned int client_command;
@@ -29,7 +33,7 @@ void *handle_client(void *client_info_ptr)
 
     while (1)
     {
-        read(client_socket, &client_command, sizeof(client_command));
+        recv(client_socket, &client_command, sizeof(client_command), 0);
         switch (client_command)
         {
         case Commands::Exit:
@@ -53,9 +57,20 @@ void *handle_client(void *client_info_ptr)
             RegisterLogic(*client_info);
             break;
         }
+        case Commands::RequestUserData:
+        {
+            cout << "[" << client_info->client_id << "] ";
+            ReqUserData(*client_info);
+            break;
+        }
         case Commands::Play:
         {
             cout << "Recived from " << client_info->client_id << " play command \n";
+            break;
+        }
+        case Commands::BoardCommand:
+        {
+            BoardCommandLogic(*client_info, engine, game);
             break;
         }
         case Commands::Chat:
@@ -88,7 +103,6 @@ void *handle_client(void *client_info_ptr)
 
 int main()
 {
-
     // DataBase test;
     // const char *query = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT);";
     // // // test.CreateTable(query);

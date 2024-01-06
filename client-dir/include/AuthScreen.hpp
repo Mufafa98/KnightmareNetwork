@@ -46,7 +46,7 @@ class AuthScreen : public Screen
 public:
     AuthScreen();
 
-    void SetFileDescriptor(int fd);
+    void UpdateOnFileDescriptor(int fd);
 
     void Animate(RenderWindow &window);
 
