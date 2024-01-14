@@ -4,6 +4,10 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <string>
+#include <stack>
+#include <ctime>
+#include <chrono>
+#include <string>
 #include "Constants.hpp"
 #include "ClientInfo.hpp"
 
@@ -20,10 +24,12 @@
 
 using namespace std;
 
+stack<int[2]> play_wait_list;
+
 void *handle_client(void *client_info_ptr)
 {
     Engine engine;
-    game_info game;
+    GameInfo game;
     engine.FENToBoard(START_CHESS_POS);
     struct ClientInfo *client_info = static_cast<struct ClientInfo *>(client_info_ptr);
     int client_socket = client_info->socket;
@@ -65,11 +71,21 @@ void *handle_client(void *client_info_ptr)
         }
         case Commands::Play:
         {
-            cout << "Recived from " << client_info->client_id << " play command \n";
+            cout << "[" << client_info->client_id << "] ";
+            if (PlayLogic(*client_info, engine, game) == Commands::Exit)
+            {
+                cout << "Recived from " << client_info->client_id << " exit command \n";
+                write(client_socket, &client_command, sizeof(client_command));
+                close(client_socket);
+                delete client_info;
+                return nullptr;
+                break;
+            }
             break;
         }
         case Commands::BoardCommand:
         {
+            cout << "[" << client_info->client_id << "] ";
             BoardCommandLogic(*client_info, engine, game);
             break;
         }
@@ -104,11 +120,14 @@ void *handle_client(void *client_info_ptr)
 int main()
 {
     // DataBase test;
-    // const char *query = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT);";
+    // char query[200];
+    // // query = "CREATE TABLE IF NOT EXISTS games ( game_id INTEGER PRIMARY KEY, white_player INTEGER, black_player INTEGER, game TEXT, FOREIGN KEY (white_player) REFERENCES users(id), FOREIGN KEY (black_player) REFERENCES users(id) );";
     // // // test.CreateTable(query);
     // // query = "INSERT INTO users (username, password) VALUES ('TEST_USER', 'TEST_PASS');";
-    // // test.InsertData(query);
-    // query = "SELECT * FROM USERS";
+    // strcpy(query, "INSERT INTO games (white_player, black_player, game) VALUES (1, 2, 'asdaasdassdasdasd');");
+    // test.InsertData(query);
+    // // test.CreateTable(query);
+    // strcpy(query, "SELECT * FROM games;");
     // test.SelectData(query, displayCallback);
     // return 0;
     int server_socket, client_socket;
@@ -144,7 +163,11 @@ int main()
     cout << "Server listening on port " << PORT << "..." << '\n';
     unsigned int client_id_local = 0;
     DataBase db;
-
+    string querry;
+    querry = "CREATE TABLE IF NOT EXISTS games ( game_id INTEGER PRIMARY KEY, white_player INTEGER, black_player INTEGER, game TEXT, time TEXT, FOREIGN KEY (white_player) REFERENCES users(id), FOREIGN KEY (black_player) REFERENCES users(id) );";
+    db.CreateTable(querry.c_str());
+    // querry = "DROP TABLE games;";
+    // db.SelectData(querry.c_str(), displayCallback);
     while (true)
     {
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_len)) < 0)
@@ -157,6 +180,7 @@ int main()
         client_info->socket = client_socket;
         client_info->client_id = client_id_local;
         client_info->db = &db;
+        client_info->seed = 314159265;
         client_id_local++;
 
         if (pthread_create(&thread_id, nullptr, handle_client, static_cast<void *>(client_info)) < 0)

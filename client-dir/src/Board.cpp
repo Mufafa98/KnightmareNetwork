@@ -421,6 +421,11 @@ Vector2f Board::GetPosition()
     return board_pos;
 }
 
+Vector2f Board::GetEndPosition()
+{
+    return board_pos + board_background.getSize();
+}
+
 unsigned int Board::GetChoice(Vector2f mouse_pos)
 {
     unsigned int start = promote_bg.getPosition().y;
@@ -447,6 +452,10 @@ void Board::Draw(RenderWindow &window)
         }
     if (need_promote_b < 8 || need_promote_w < 8)
     {
+        /*
+            problem: when in a match with someone if he/she wants to
+            promote a pawn, the promotion box shows on both clients
+        */
         window.draw(promote_bg);
         window.draw(promote_Q);
         window.draw(promote_R);

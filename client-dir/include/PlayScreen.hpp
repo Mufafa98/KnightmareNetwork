@@ -21,48 +21,47 @@
 
 using namespace sf;
 
-class HomeScreen : public Screen
+class PlayScreen : public Screen
 {
+    bool opponent_found;
+
     int fd;
     unsigned short click_count;
     unsigned int turn;
     bool need_to_promote;
+    bool game_ended;
 
     game_info game;
 
     RectangleShape screen_background;
-    RoundedRectangle profile_background;
-    RoundedRectangle profile_picture;
 
-    RoundedRectangle id_background;
-    RoundedRectangle elo_background;
+    Clock waiting_animation;
+    RoundedRectangle waiting_bg;
+    TextBox waiting_text;
 
-    RoundedRectangle menu_background;
-    RoundedRectangle analysis_menu_bg;
+    RoundedRectangle chat_bg;
+    CircleShape opponent_color;
+    TextBox opponent_username;
+    string chat_buffer;
+    TextBox chat_text;
+    RoundedRectangle message_bg;
+    InputBox message_text;
 
-    Button play_button;
-    RoundedRectangle play_button_shade;
-    Button social_button;
-    RoundedRectangle social_button_shade;
-    Button options_button;
-    RoundedRectangle options_button_shade;
-    Button exit_button;
-    RoundedRectangle exit_button_shade;
+    Button send_message;
+    RoundedRectangle send_message_shade;
+    TextBox send_message_text;
 
-    TextBox username;
-    TextBox id_text;
-    TextBox stat_text;
+    Button back_to_menu;
+    RoundedRectangle back_to_menu_shade;
+    TextBox back_to_menu_text;
 
-    TextBox play_text;
-    TextBox social_text;
-    TextBox options_text;
-    TextBox exit_text;
+    RoundedRectangle board_possitions;
 
-    Board *analysis_board;
+    Board *board;
 
 public:
-    HomeScreen();
-    ~HomeScreen();
+    PlayScreen();
+    ~PlayScreen();
 
     void UpdateOnFileDescriptor(int fd);
 

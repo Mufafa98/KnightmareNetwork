@@ -12,6 +12,23 @@ Engine::Engine()
     game_result = 0;
 }
 
+void Engine::Restart()
+{
+    pawn_needs_promotion = 8;
+    turn_swapped = false;
+    turn = 0;
+    fifty_move_rule = 0;
+    white_castling_rights = 3;
+    black_castling_rights = 3;
+    game_running = true;
+    game_result = 0;
+    FENToBoard(START_CHESS_POS);
+    while (!white_moves.empty())
+        white_moves.pop();
+    while (!black_moves.empty())
+        black_moves.pop();
+}
+
 bool Engine::CheckMoveRook(unsigned short (&board_to_check)[8][8], const Vector2i &start_pos, const Vector2i &end_pos)
 {
     const unsigned short start_x = start_pos.x;
@@ -360,7 +377,7 @@ void Engine::CheckEndConditions()
                 game_result = 2;
         }
         else
-            game_result = 0;
+            game_result = 1;
     }
     // fifty move rule
     if (fifty_move_rule == 50)
@@ -376,14 +393,14 @@ void Engine::CheckEndConditions()
     if (black_size == white_size && white_size == 1)
     {
         game_running = false;
-        game_result = 0;
+        game_result = 1;
     }
     else if (black_size == 1 && white_size == 2)
     {
         if (white_pieces.find('n') || white_pieces.find('b'))
         {
             game_running = false;
-            game_result = 0;
+            game_result = 1;
         }
     }
     else if (black_size == 2 && white_size == 1)
@@ -391,138 +408,141 @@ void Engine::CheckEndConditions()
         if (black_pieces.find('n') || black_pieces.find('b'))
         {
             game_running = false;
-            game_result = 0;
+            game_result = 1;
         }
     }
     // threefold
     if (game_past_possitions.GetFrecuency(BoardToFEN()) == 3)
     {
         game_running = false;
-        game_result = 0;
+        game_result = 1;
     }
 }
 
 bool Engine::MakeMove(const Vector2i &start_pos, const Vector2i &end_pos)
 {
-    if (IsLegal(board_to_check, start_pos, end_pos, 0))
+    turn_swapped = true;
+    fifty_move_rule++;
+    const unsigned short start_x = start_pos.x;
+    const unsigned short start_y = start_pos.y;
+    const unsigned short end_x = end_pos.x;
+    const unsigned short end_y = end_pos.y;
+    if (board_to_check[end_y][end_x])
+        fifty_move_rule = 0;
+    if ((board_to_check[start_y][start_x] & 7) == Piece::Pawn)
     {
-        turn_swapped = true;
-        fifty_move_rule++;
-        const unsigned short start_x = start_pos.x;
-        const unsigned short start_y = start_pos.y;
-        const unsigned short end_x = end_pos.x;
-        const unsigned short end_y = end_pos.y;
-        if (board_to_check[end_y][end_x])
-            fifty_move_rule = 0;
-        if ((board_to_check[start_y][start_x] & 7) == Piece::Pawn)
+        fifty_move_rule = 0;
+        if (board_to_check[start_y][start_x] & Piece::White)
         {
-            fifty_move_rule = 0;
-            if (board_to_check[start_y][start_x] & Piece::White)
+            if (start_y == 6 && start_y - end_y == 2 && !board_to_check[start_y - 1][end_x])
             {
-                if (start_y == 6 && start_y - end_y == 2 && !board_to_check[start_y - 1][end_x])
-                {
-                    RemoveEnPassantTrace(Piece::White);
-                    SetEnPassantTrace(Vector2i(end_x, start_y - 1), Piece::White);
-                }
-            }
-            else if (board_to_check[start_y][start_x] & Piece::Black)
-            {
-                if (start_y == 1 && end_y - start_y == 2 && !board_to_check[start_y + 1][end_x])
-                {
-                    RemoveEnPassantTrace(Piece::Black);
-                    SetEnPassantTrace(Vector2i(end_x, start_y + 1), Piece::Black);
-                }
-            }
-
-            if (board_to_check[start_y][start_x] & Piece::White)
-            {
-                if (board_to_check[end_y][end_x] == Piece::EnPassantTrace + Piece::Black)
-                    board_to_check[end_y + 1][end_x] = 0;
-            }
-            else if (board_to_check[start_y][start_x] & Piece::Black)
-            {
-                if (board_to_check[end_y][end_x] == Piece::EnPassantTrace + Piece::White)
-                    board_to_check[end_y - 1][end_x] = 0;
-            }
-
-            if (end_y == 7 || end_y == 0)
-                pawn_needs_promotion = end_y;
-        }
-        else if ((board_to_check[start_y][start_x] & 7) == Piece::King)
-        {
-            if (board_to_check[start_y][start_x] & Piece::White)
-            {
-                white_castling_rights = 0;
-            }
-            else if (board_to_check[start_y][start_x] & Piece::Black)
-            {
-                black_castling_rights = 0;
-            }
-            if (end_x == start_x - 2)
-            {
-                MovePiece(Vector2i(start_x - 4, start_y), Vector2i(start_x - 1, start_y));
-            }
-            else if (end_x == start_x + 2)
-            {
-                MovePiece(Vector2i(start_x + 3, start_y), Vector2i(start_x + 1, start_y));
+                RemoveEnPassantTrace(Piece::White);
+                SetEnPassantTrace(Vector2i(end_x, start_y - 1), Piece::White);
             }
         }
-        else if ((board_to_check[start_y][start_x] & 7) == Piece::Rook)
+        else if (board_to_check[start_y][start_x] & Piece::Black)
         {
-            if (board_to_check[start_y][start_x] & Piece::White)
+            if (start_y == 1 && end_y - start_y == 2 && !board_to_check[start_y + 1][end_x])
             {
-                if (start_y == 7)
-                {
-                    if (start_x == 0)
-                    {
-                        white_castling_rights &= 1;
-                    }
-                    else if (start_x == 7)
-                    {
-                        white_castling_rights &= 2;
-                    }
-                }
-            }
-            else if (board_to_check[start_y][start_x] & Piece::Black)
-            {
-                if (start_y == 0)
-                {
-                    if (start_x == 0)
-                    {
-                        black_castling_rights &= 1;
-                    }
-                    else if (start_x == 7)
-                    {
-                        black_castling_rights &= 2;
-                    }
-                }
+                RemoveEnPassantTrace(Piece::Black);
+                SetEnPassantTrace(Vector2i(end_x, start_y + 1), Piece::Black);
             }
         }
 
-        if (white_castling_rights && end_y == 7)
+        if (board_to_check[start_y][start_x] & Piece::White)
         {
-            if (end_x == 0)
-                white_castling_rights &= 1;
-            else if (end_x == 7)
-                white_castling_rights &= 2;
+            if (board_to_check[end_y][end_x] == Piece::EnPassantTrace + Piece::Black)
+                board_to_check[end_y + 1][end_x] = 0;
         }
-        if (black_castling_rights && end_y == 0)
+        else if (board_to_check[start_y][start_x] & Piece::Black)
         {
-            if (end_x == 0)
-                black_castling_rights &= 1;
-            else if (end_x == 7)
-                black_castling_rights &= 2;
+            if (board_to_check[end_y][end_x] == Piece::EnPassantTrace + Piece::White)
+                board_to_check[end_y - 1][end_x] = 0;
         }
 
-        MovePiece(start_pos, end_pos);
-        if (board_to_check[end_y][end_x] & 8)
-            RemoveEnPassantTrace(Piece::Black);
-        else if (board_to_check[end_y][end_x] & 16)
-            RemoveEnPassantTrace(Piece::White);
-        game_past_possitions.Insert(BoardToFEN());
-        turn++;
-        return true;
+        if (end_y == 7 || end_y == 0)
+            pawn_needs_promotion = end_y;
     }
+    else if ((board_to_check[start_y][start_x] & 7) == Piece::King)
+    {
+        if (board_to_check[start_y][start_x] & Piece::White)
+        {
+            white_castling_rights = 0;
+        }
+        else if (board_to_check[start_y][start_x] & Piece::Black)
+        {
+            black_castling_rights = 0;
+        }
+        if (end_x == start_x - 2)
+        {
+            MovePiece(Vector2i(start_x - 4, start_y), Vector2i(start_x - 1, start_y));
+        }
+        else if (end_x == start_x + 2)
+        {
+            MovePiece(Vector2i(start_x + 3, start_y), Vector2i(start_x + 1, start_y));
+        }
+    }
+    else if ((board_to_check[start_y][start_x] & 7) == Piece::Rook)
+    {
+        if (board_to_check[start_y][start_x] & Piece::White)
+        {
+            if (start_y == 7)
+            {
+                if (start_x == 0)
+                {
+                    white_castling_rights &= 1;
+                }
+                else if (start_x == 7)
+                {
+                    white_castling_rights &= 2;
+                }
+            }
+        }
+        else if (board_to_check[start_y][start_x] & Piece::Black)
+        {
+            if (start_y == 0)
+            {
+                if (start_x == 0)
+                {
+                    black_castling_rights &= 1;
+                }
+                else if (start_x == 7)
+                {
+                    black_castling_rights &= 2;
+                }
+            }
+        }
+    }
+
+    if (white_castling_rights && end_y == 7)
+    {
+        if (end_x == 0)
+            white_castling_rights &= 1;
+        else if (end_x == 7)
+            white_castling_rights &= 2;
+    }
+    if (black_castling_rights && end_y == 0)
+    {
+        if (end_x == 0)
+            black_castling_rights &= 1;
+        else if (end_x == 7)
+            black_castling_rights &= 2;
+    }
+
+    MovePiece(start_pos, end_pos);
+    if (board_to_check[end_y][end_x] & 8)
+        RemoveEnPassantTrace(Piece::Black);
+    else if (board_to_check[end_y][end_x] & 16)
+        RemoveEnPassantTrace(Piece::White);
+    game_past_possitions.Insert(BoardToFEN());
+    turn++;
+    return true;
+}
+
+bool Engine::MakeMoveIfLegal(const Vector2i &start_pos, const Vector2i &end_pos, const int options)
+{
+    if (IsLegal(board_to_check, start_pos, end_pos, options))
+        return MakeMove(start_pos, end_pos);
     return false;
 }
 
@@ -737,6 +757,66 @@ unsigned short Engine::TurnSwapped()
     return turn_swapped;
 }
 
+string Engine::GetPlayedMoves()
+{
+    string result;
+    while (!white_moves.empty() && !black_moves.empty())
+    {
+        result += white_moves.front();
+        result += black_moves.front();
+        white_moves.pop();
+        black_moves.pop();
+    }
+    if (!game_running)
+    {
+        if (game_result == 1)
+        {
+            if (!white_moves.empty())
+                result += white_moves.front();
+            else
+                result += black_moves.front();
+            result += "0 - 0";
+        }
+        else if (game_result == 2)
+        {
+            if (!white_moves.empty())
+                result += white_moves.front();
+            else
+                result += black_moves.front();
+            result += "1 - 0";
+        }
+        else if (game_result == 3)
+        {
+            if (!white_moves.empty())
+                result += white_moves.front();
+            else
+                result += black_moves.front();
+            result += "0 - 1";
+        }
+    }
+    else
+    {
+        if (black_moves.empty() && white_moves.empty())
+        {
+            result += "0 - 1";
+        }
+        else
+        {
+            if (!white_moves.empty())
+                result += white_moves.front();
+            else
+                result += black_moves.front();
+            result += "1 - 0";
+        }
+    }
+    return result;
+}
+
+unsigned int Engine::GetTurn()
+{
+    return turn % 2;
+}
+
 void Engine::GetHighlightedArray(bool (&array)[8][8])
 {
     for (unsigned short i = 0; i < 8; i++)
@@ -815,4 +895,50 @@ void Engine::MovePiece(const Vector2i &start_pos, const Vector2i &end_pos)
 {
     board_to_check[end_pos.y][end_pos.x] = board_to_check[start_pos.y][start_pos.x];
     board_to_check[start_pos.y][start_pos.x] = 0;
+    char piece;
+    switch (board_to_check[end_pos.y][end_pos.x] & 7)
+    {
+    case Piece::Queen:
+        piece = 'q';
+        break;
+    case Piece::King:
+        piece = 'k';
+        break;
+    case Piece::Rook:
+        piece = 'r';
+        break;
+    case Piece::Bishop:
+        piece = 'b';
+        break;
+    case Piece::Knight:
+        piece = 'n';
+        break;
+    case Piece::Pawn:
+        piece = 'p';
+        break;
+
+    default:
+        break;
+    }
+
+    if ((board_to_check[end_pos.y][end_pos.x] & Piece::White) == Piece::White)
+    {
+        string move_made = "";
+        move_made.push_back(toupper(piece));
+        move_made.push_back(char('a' + start_pos.x));
+        move_made += to_string(8 - start_pos.y);
+        move_made.push_back(char('a' + end_pos.x));
+        move_made += to_string(8 - end_pos.y);
+        white_moves.push(move_made);
+    }
+    else if ((board_to_check[end_pos.y][end_pos.x] & Piece::Black) == Piece::Black)
+    {
+        string move_made = "";
+        move_made.push_back(piece);
+        move_made.push_back(char('a' + start_pos.x));
+        move_made += to_string(8 - start_pos.y);
+        move_made.push_back(char('a' + end_pos.x));
+        move_made += to_string(8 - end_pos.y);
+        black_moves.push(move_made);
+    }
 }

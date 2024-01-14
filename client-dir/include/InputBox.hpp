@@ -7,28 +7,36 @@
 using namespace sf;
 using namespace std;
 
-
-class InputBox : public TextBox {
+class InputBox : public TextBox
+{
     bool modified = false;
     bool selected = false;
     unsigned short type;
     Vector2f bg_size, bg_pos;
     string buffer;
+
 public:
-    enum Type {
+    enum Type
+    {
         Text,
-        Password
+        Password,
+        Message,
+        Search
     };
     void SetBgSize(Vector2f size);
     void SetBgPosition(Vector2f pos);
+    void SetIBFillColor(Color color);
+
     void SetType(unsigned short type);
 
     string GetBuffer();
-
-    void UpdateText(unsigned int code);
+    Vector2f GetBgSize();
+    Vector2f GetBgPosition();
+    void UpdateText(unsigned int code, unsigned int limit);
+    void Reset();
 
     void Select();
     void DeSelect();
-    
+
     bool GetSelected();
 };

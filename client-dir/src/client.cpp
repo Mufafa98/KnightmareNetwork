@@ -11,6 +11,8 @@
 
 #include "AuthScreen.hpp"
 #include "HomeScreen.hpp"
+#include "PlayScreen.hpp"
+#include "SocialScreen.hpp"
 #include "Constants.hpp"
 
 #define PORT 8080
@@ -54,7 +56,8 @@ int main()
 
     screen.push_back(new AuthScreen());
     screen.push_back(new HomeScreen());
-    screen.push_back(new HomeScreen());
+    screen.push_back(new PlayScreen());
+    screen.push_back(new SocialScreen());
     screen[0]->UpdateOnFileDescriptor(client_socket);
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE, Style::Close | Style::Titlebar);
     window.setVerticalSyncEnabled(true);
@@ -79,19 +82,46 @@ int main()
                 Vector2f mouse_pos = window.mapPixelToCoords(Mouse::getPosition(window));
                 screen[current_screen_id]->UpdateOnClick(mouse_pos);
                 unsigned int response = screen[current_screen_id]->LogicOnClick(mouse_pos);
-                if (response == LogicCodes::NextScreen)
+                switch (response)
                 {
-
-                    current_screen_id++;
-                    current_screen_id %= NO_OF_SCREENS;
+                case ScreenCommand::AuthS:
+                {
+                    current_screen_id = 0;
+                    screen[current_screen_id]->Restart();
                     screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                    break;
                 }
-                else if (response == LogicCodes::Exit_req)
+                case ScreenCommand::MenuS:
+                {
+                    current_screen_id = 1;
+                    screen[current_screen_id]->Restart();
+                    screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                    break;
+                }
+                case ScreenCommand::PlayS:
+                {
+                    current_screen_id = 2;
+                    screen[current_screen_id]->Restart();
+                    screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                    break;
+                }
+                case ScreenCommand::SocialS:
+                {
+                    current_screen_id = 3;
+                    screen[current_screen_id]->Restart();
+                    screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                    break;
+                }
+                case ScreenCommand::ExitS:
                 {
                     window.close();
                     client_command = Commands::Exit;
                     send(client_socket, &client_command, sizeof(client_command), 0);
                     close(client_socket);
+                    break;
+                }
+                default:
+                    break;
                 }
                 break;
             }

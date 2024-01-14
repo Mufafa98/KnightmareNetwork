@@ -24,6 +24,7 @@ public:
 
     virtual void UpdateOnKeyPressed(unsigned int code) = 0;
     virtual void UpdateOnClick(Vector2f mouse_pos) = 0;
+    virtual void Restart() = 0;
 
     virtual unsigned int LogicOnClick(Vector2f mouse_pos) = 0;
 
