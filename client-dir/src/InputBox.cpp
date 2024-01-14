@@ -10,6 +10,11 @@ void InputBox::SetBgPosition(Vector2f pos)
     bg_pos = pos;
 }
 
+void InputBox::SetIBFillColor(Color color)
+{
+    text.setFillColor(color);
+}
+
 void InputBox::SetType(unsigned short type)
 {
     this->type = type;
@@ -20,7 +25,17 @@ string InputBox::GetBuffer()
     return buffer;
 }
 
-void InputBox::UpdateText(unsigned int code)
+Vector2f InputBox::GetBgSize()
+{
+    return bg_size;
+}
+
+Vector2f InputBox::GetBgPosition()
+{
+    return bg_pos;
+}
+
+void InputBox::UpdateText(unsigned int code, unsigned int limit)
 {
     if (modified == false)
         text.setString("");
@@ -36,11 +51,16 @@ void InputBox::UpdateText(unsigned int code)
         break;
 
     default:
-        if (current_text.size() > 13)
+        if (current_text.size() > limit)
             break;
+        if (type == InputBox::Type::Message && code == ' ')
+        {
+            current_text += code;
+            buffer = current_text;
+        }
         if ((isalnum(code) || ispunct(code)) && !isspace(code))
         {
-            if (type == InputBox::Type::Text)
+            if (type == InputBox::Type::Text || type == InputBox::Type::Message || type == InputBox::Type::Search)
             {
                 current_text += code;
                 buffer = current_text;
@@ -57,7 +77,11 @@ void InputBox::UpdateText(unsigned int code)
         break;
     }
     text.setString(current_text);
-    Center(bg_pos, bg_size);
+}
+
+void InputBox::Reset()
+{
+    modified = false;
 }
 
 void InputBox::Select()
@@ -74,7 +98,10 @@ void InputBox::DeSelect()
             text.setString("User");
         else if (type == InputBox::Type::Password)
             text.setString("Password");
-        Center(bg_pos, bg_size);
+        else if (type == InputBox::Type::Message)
+            text.setString("Message");
+        else if (type == InputBox::Type::Search)
+            text.setString("Search");
     }
 }
 

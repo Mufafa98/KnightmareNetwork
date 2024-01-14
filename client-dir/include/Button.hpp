@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "ClientData.hpp"
 #include "RoundedRectangle.hpp"
+#include <CustomUtility.hpp>
 
 using namespace sf;
 
@@ -22,6 +23,8 @@ public:
 
     Color GetFillColor();
     Vector2f GetPosition();
+    Vector2f GetEndPosition();
     Vector2f GetSize();
     void Draw(RenderWindow &window);
+    void Animate(Vector2f &mouse_pos, Color color);
 };

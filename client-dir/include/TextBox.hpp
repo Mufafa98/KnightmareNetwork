@@ -21,8 +21,12 @@ public:
     void SetFillColor(Color color);
 
     Vector2f GetSize();
+    Vector2f GetPosition();
+    string GetString();
 
     void Center(Vector2f start_pos, Vector2f size);
+    void CenterV(Vector2f start_pos, Vector2f size);
+    unsigned int FitWidth(const float &start, const float &end);
 
     void Draw(RenderWindow &window);
 };

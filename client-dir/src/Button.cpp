@@ -46,6 +46,11 @@ Vector2f Button::GetPosition()
     return background.GetPosition();
 }
 
+Vector2f Button::GetEndPosition()
+{
+    return end_pos;
+}
+
 Vector2f Button::GetSize()
 {
     return background.GetSize();
@@ -54,4 +59,19 @@ Vector2f Button::GetSize()
 void Button::Draw(RenderWindow &window)
 {
     background.Draw(window);
+}
+
+void Button::Animate(Vector2f &mouse_pos, Color color)
+{
+    if (Contains(mouse_pos))
+        SetFillColor(DarkenColor(color, 0.9));
+    else
+        SetFillColor(color);
+    if (Mouse::isButtonPressed(Mouse::Button::Left))
+    {
+        if (Contains(mouse_pos))
+            SetFillColor(DarkenColor(color, 0.8));
+        else
+            SetFillColor(color);
+    }
 }

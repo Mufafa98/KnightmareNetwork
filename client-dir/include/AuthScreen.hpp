@@ -52,6 +52,7 @@ public:
 
     void UpdateOnKeyPressed(unsigned int code);
     void UpdateOnClick(Vector2f mouse_pos);
+    void Restart();
 
     unsigned int LogicOnClick(Vector2f mouse_pos);
 

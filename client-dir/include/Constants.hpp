@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 
 #define START_CHESS_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+// #define START_CHESS_POS "7k/RQ6/8/8/8/8/8/7K"
 
 enum Commands
 {
@@ -13,7 +14,9 @@ enum Commands
     Search,
     Chat,
     Game_db,
-    BoardCommand
+    BoardCommand,
+    BoardCommandMatch,
+    SaveMatch
 };
 
 enum BoardCommands
@@ -23,8 +26,14 @@ enum BoardCommands
     SelectSquare,
     HighlightLegalMoves,
     MovePiece,
+    MovePieceAnimate,
+    UnableToMovePiece,
     NeedPromotion,
     PromotePawn,
+    PromotePawnAnimate,
+    NotYourTurn,
+    YourTurn,
+    GameOver,
     None
 };
 
@@ -37,6 +46,22 @@ enum LogicCodes
     Exit_req,
     Success,
     Error
+};
+
+enum ScreenCommand
+{
+    NoneS,
+    AuthS,
+    MenuS,
+    PlayS,
+    SocialS,
+    ExitS
+};
+
+enum InternalLogic
+{
+    Nothing,
+    OpponentFound
 };
 
 enum DBCodes

@@ -12,7 +12,7 @@
 #define ATTACKED sf::Color(255, 0, 0, 50)
 #define PROMOTE_BG sf::Color(239, 225, 213)
 
-#define NO_OF_SCREENS 2
+#define NO_OF_SCREENS 3
 
 #define SCREEN_BACKGROUND_COLOR sf::Color(162, 155, 144)
 #define SECOND_BACKGROUND_COLOR sf::Color(64, 61, 57)

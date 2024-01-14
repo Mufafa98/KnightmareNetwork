@@ -51,6 +51,7 @@ public:
     void TryEnPassant(const Vector2i &start_pos, const Vector2i &end_pos);
 
     Vector2f GetPosition();
+    Vector2f GetEndPosition();
     unsigned int GetChoice(Vector2f mouse_pos);
 
     void Draw(RenderWindow &window);

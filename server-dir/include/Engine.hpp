@@ -1,13 +1,19 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <queue>
+#include <string>
 #include "Piece.hpp"
 #include "DigitalTree.hpp"
+#include "Constants.hpp"
 
 using namespace sf;
+using namespace std;
 
 class Engine
 {
+    queue<string> white_moves;
+    queue<string> black_moves;
     bool game_running;
     bool turn_swapped;
     unsigned short game_result; // 1-draw   2-white won   3-black won
@@ -33,21 +39,27 @@ class Engine
     void RemoveEnPassantTrace(unsigned short side);
     void SetEnPassantTrace(const Vector2i &pos, const unsigned short side);
     void MovePiece(const Vector2i &start_pos, const Vector2i &end_pos);
+    bool MakeMove(const Vector2i &start_pos, const Vector2i &end_pos);
 
 public:
     Engine();
+    void Restart();
     bool SelectSquare(const Vector2i &pos);
     void FENToBoard(string FEN);
     void DeSelectSquare(); // e nevoie?
     void HighlightLegalMoves(const Vector2i &pos);
     void DeHighlightLegalMoves();
     void CheckEndConditions();
-    bool MakeMove(const Vector2i &start_pos, const Vector2i &end_pos);
+
+    bool MakeMoveIfLegal(const Vector2i &start_pos, const Vector2i &end_pos, const int options);
     bool GameRunning();
     bool PawnNeedsPromotion();
     void PromotePawn(const unsigned short &id);
     unsigned short GetGameResult();
     unsigned short TurnSwapped();
+    string GetPlayedMoves();
+
+    unsigned int GetTurn();
 
     void GetHighlightedArray(bool (&array)[8][8]);
 };
