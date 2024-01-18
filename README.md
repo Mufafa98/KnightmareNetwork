@@ -29,4 +29,5 @@ Using the client app the user can:
  1. [SFML](https://www.sfml-dev.org/documentation/2.6.1/)
  2. [Engine Developement](https://www.chessprogramming.org/Main_Page)
  3. [Graphical and Audio resources](https://github.com/lichess-org/lila)
+ 4. [Color Pallete](https://coolors.co/eb5e28-252422-a29b90-403d39)
 
