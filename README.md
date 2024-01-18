@@ -30,4 +30,6 @@ Using the client app the user can:
  2. [Engine Developement](https://www.chessprogramming.org/Main_Page)
  3. [Graphical and Audio resources](https://github.com/lichess-org/lila)
  4. [Color Pallete](https://coolors.co/eb5e28-252422-a29b90-403d39)
+ 5. [AppDesign Charts](https://lucid.app/)
+
 
