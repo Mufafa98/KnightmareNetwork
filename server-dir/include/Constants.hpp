@@ -1,5 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <queue>
+
+using namespace std;
 
 #define START_CHESS_POS "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 // #define START_CHESS_POS "7k/RQ6/8/8/8/8/8/7K"
@@ -35,6 +38,19 @@ enum BoardCommands
     GameOver,
     GameSaved,
     None
+};
+
+enum SearchCommands
+{
+    GetGame,
+    GetGames,
+    GetGamesById,
+    GetUsers,
+    GetFriends,
+    GetUsersById,
+    SendFriendRequest,
+    NoneSearch,
+    LastElement
 };
 
 enum LogicCodes
@@ -74,4 +90,34 @@ struct GameInfo
         0 - white
         1 - black
     */
+};
+
+struct GameDbInfo
+{
+    char game_id[10];
+    char white_player[20];
+    char black_player[20];
+    char time[50];
+};
+
+struct QueueGDI
+{
+    queue<GameDbInfo> results;
+};
+
+struct UserDbInfo
+{
+    char user_id[10];
+    char username[20];
+};
+
+struct QueueUDI
+{
+    queue<UserDbInfo> results;
+};
+
+struct QueueS
+{
+    queue<string> result1;
+    queue<string> result2;
 };

@@ -2,21 +2,12 @@
 
 void Board::MovePiece(const Vector2i &start_pos, const Vector2i &end_pos)
 {
+
     const unsigned short start_x = start_pos.x;
     const unsigned short start_y = start_pos.y;
     const unsigned short end_x = end_pos.x;
     const unsigned short end_y = end_pos.y;
-    if (board[end_y][end_x])
-    {
-        if ((board[end_y][end_x] & 7) != Piece::EnPassantTrace)
-            sound[1].play(); // capture
-        else if ((board[start_y][start_x] & 7) == 6)
-            sound[1].play(); // capture
-        else
-            sound[0].play(); // move
-    }
-    else
-        sound[0].play(); // move
+    PlaySound(start_pos, end_pos);
     if ((board[start_y][start_x] & Piece::Pawn) == Piece::Pawn)
     {
         if ((board[start_y][start_x] & Piece::Black) && (end_y == 7))
@@ -43,6 +34,25 @@ void Board::MovePiece(const Vector2i &start_pos, const Vector2i &end_pos)
     board[end_y][end_x] = board[start_y][start_x];
     board[start_y][start_x] = 0;
     UpdateBoard();
+}
+
+void Board::PlaySound(const Vector2i &start_pos, const Vector2i &end_pos)
+{
+    const unsigned short start_x = start_pos.x;
+    const unsigned short start_y = start_pos.y;
+    const unsigned short end_x = end_pos.x;
+    const unsigned short end_y = end_pos.y;
+    if (board[end_y][end_x])
+    {
+        if ((board[end_y][end_x] & 7) != Piece::EnPassantTrace)
+            sound[1].play(); // capture
+        else if ((board[start_y][start_x] & 7) == 6)
+            sound[1].play(); // capture
+        else
+            sound[0].play(); // move
+    }
+    else
+        sound[0].play(); // move
 }
 
 void Board::SelectSquare(const Vector2i &pos)
@@ -337,6 +347,159 @@ Board::Board(const String FEN_board, Vector2f board_pos)
     promote_R.setSize(Vector2f(SQUARE_SIZE, SQUARE_SIZE));
     promote_N.setSize(Vector2f(SQUARE_SIZE, SQUARE_SIZE));
     promote_B.setSize(Vector2f(SQUARE_SIZE, SQUARE_SIZE));
+}
+
+string Board::BoardToFEN()
+{
+    string raw_pos = "";
+    for (unsigned short i = 0; i < 8; i++)
+    {
+        for (unsigned short j = 0; j < 8; j++)
+        {
+            char piece = '1';
+            switch (board[i][j] & 7)
+            {
+            case Piece::King:
+                piece = 'k';
+                break;
+            case Piece::Queen:
+                piece = 'q';
+                break;
+            case Piece::Bishop:
+                piece = 'b';
+                break;
+            case Piece::Knight:
+                piece = 'n';
+                break;
+            case Piece::Rook:
+                piece = 'r';
+                break;
+            case Piece::Pawn:
+                piece = 'p';
+                break;
+            default:
+                break;
+            }
+            if (board[i][j] & Piece::White && (board[i][j] & 7) != Piece::EnPassantTrace)
+                piece = _toupper(piece);
+            raw_pos += piece;
+        }
+        raw_pos += '/';
+    }
+    string pos = "";
+    unsigned short counter = 0;
+    for (size_t i = 0; i < raw_pos.size(); i++)
+    {
+        if (raw_pos[i] != '1')
+        {
+            if (counter != 0)
+                pos += '0' + counter;
+            pos += raw_pos[i];
+            counter = 0;
+        }
+        else
+            counter++;
+    }
+    return pos;
+}
+
+void Board::FENToBoard(string FEN)
+{
+    unsigned short x_pos = 0;
+    unsigned short y_pos = 0;
+    for (unsigned short i = 0; i < 8; i++)
+        for (unsigned short j = 0; j < 8; j++)
+            board[i][j] = 0;
+    for (size_t i = 0; i < FEN.size(); i++)
+    {
+        switch (FEN[i])
+        {
+        case 'K':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::King;
+            x_pos++;
+            break;
+        }
+        case 'Q':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::Queen;
+            x_pos++;
+            break;
+        }
+        case 'B':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::Bishop;
+            x_pos++;
+            break;
+        }
+        case 'N':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::Knight;
+            x_pos++;
+            break;
+        }
+        case 'R':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::Rook;
+            x_pos++;
+            break;
+        }
+        case 'P':
+        {
+            board[y_pos][x_pos] = Piece::White + Piece::Pawn;
+            x_pos++;
+            break;
+        }
+        case 'k':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::King;
+            x_pos++;
+            break;
+        }
+        case 'q':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::Queen;
+            x_pos++;
+            break;
+        }
+        case 'b':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::Bishop;
+            x_pos++;
+            break;
+        }
+        case 'n':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::Knight;
+            x_pos++;
+            break;
+        }
+        case 'r':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::Rook;
+            x_pos++;
+            break;
+        }
+        case 'p':
+        {
+            board[y_pos][x_pos] = Piece::Black + Piece::Pawn;
+            x_pos++;
+            break;
+        }
+        default:
+        {
+            if (FEN[i] >= '0' && FEN[i] <= '9')
+                x_pos += FEN[i] - '0';
+            break;
+        }
+        }
+        if (x_pos >= 8)
+        {
+            x_pos = 0;
+            y_pos++;
+        }
+    }
+    UpdateBoard();
 }
 
 void Board::SetPosition(Vector2f pos)

@@ -2,6 +2,7 @@
 	"files.associations": {
 		"*.TXT": "plaintext",
 		"iostream": "cpp",
-		"new": "cpp"
+		"new": "cpp",
+		"string": "cpp"
 	}
 }
