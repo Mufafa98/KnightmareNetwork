@@ -14,6 +14,7 @@
 #include "PlayScreen.hpp"
 #include "SocialScreen.hpp"
 #include "Constants.hpp"
+#include "AnalysisScreen.hpp"
 
 #define PORT 8080
 #define ADDRESS "127.0.0.1"
@@ -58,6 +59,7 @@ int main()
     screen.push_back(new HomeScreen());
     screen.push_back(new PlayScreen());
     screen.push_back(new SocialScreen());
+    screen.push_back(new AnalysisScreen());
     screen[0]->UpdateOnFileDescriptor(client_socket);
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE, Style::Close | Style::Titlebar);
     window.setVerticalSyncEnabled(true);
@@ -108,6 +110,13 @@ int main()
                 case ScreenCommand::SocialS:
                 {
                     current_screen_id = 3;
+                    screen[current_screen_id]->Restart();
+                    screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
+                    break;
+                }
+                case ScreenCommand::AnalysisS:
+                {
+                    current_screen_id = 4;
                     screen[current_screen_id]->Restart();
                     screen[current_screen_id]->UpdateOnFileDescriptor(client_socket);
                     break;

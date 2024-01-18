@@ -53,7 +53,7 @@ void InputBox::UpdateText(unsigned int code, unsigned int limit)
     default:
         if (current_text.size() > limit)
             break;
-        if (type == InputBox::Type::Message && code == ' ')
+        if ((type == InputBox::Type::Message || type == InputBox::Type::Search) && code == ' ')
         {
             current_text += code;
             buffer = current_text;

@@ -39,7 +39,52 @@ void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int
         sqlite3_close(db);
     }
 }
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), int &result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, &result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
 void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), char *result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), QueueGDI *result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), QueueUDI *result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), QueueS *result)
+{
+    int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
+    if (sqlite3_result_code != SQLITE_OK)
+    {
+        perror("[Select Database]");
+        sqlite3_close(db);
+    }
+}
+void DataBase::SelectData(const char *query, int (*CallBackFunction)(void *, int, char **, char **), string *result)
 {
     int sqlite3_result_code = sqlite3_exec(db, query, CallBackFunction, result, 0);
     if (sqlite3_result_code != SQLITE_OK)

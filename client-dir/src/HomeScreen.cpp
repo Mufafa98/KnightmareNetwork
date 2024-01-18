@@ -267,7 +267,7 @@ unsigned int HomeScreen::LogicOnClick(Vector2f mouse_pos)
                     if (need_to_promote)
                         turn--;
                 }
-                if (!need_to_promote) // TO DO pawn promotion
+                if (!need_to_promote)
                 {
                     click_count++;
                     click_count %= 2;

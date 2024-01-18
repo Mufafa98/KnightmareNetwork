@@ -34,6 +34,7 @@ class Board
 public:
     map<unsigned short, Texture> pieces_texture;
     void MovePiece(const Vector2i &start_pos, const Vector2i &end_pos);
+    void PlaySound(const Vector2i &start_pos, const Vector2i &end_pos);
     void SelectSquare(const Vector2i &pos);
     void DeSelectSquare();
     void HighlightSquare(const unsigned short x, const unsigned short y);
@@ -43,6 +44,8 @@ public:
     void UpdateBoard();
     void PromotePawn(const unsigned short &id);
     Board(const String FEN_board, Vector2f board_pos);
+    string BoardToFEN();
+    void FENToBoard(string FEN);
 
     void SetPosition(Vector2f pos);
     bool Contains(Vector2f mouse_pos);

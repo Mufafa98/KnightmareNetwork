@@ -89,19 +89,9 @@ void *handle_client(void *client_info_ptr)
             BoardCommandLogic(*client_info, engine, game);
             break;
         }
-        case Commands::Chat:
-        {
-            cout << "Recived from " << client_info->client_id << " chat command \n";
-            break;
-        }
-        case Commands::Game_db:
-        {
-            cout << "Recived from " << client_info->client_id << " game_db command \n";
-            break;
-        }
         case Commands::Search:
         {
-            cout << "Recived from " << client_info->client_id << " search command \n";
+            SocialLogic(*client_info);
             break;
         }
         default:
@@ -163,10 +153,15 @@ int main()
     cout << "Server listening on port " << PORT << "..." << '\n';
     unsigned int client_id_local = 0;
     DataBase db;
-    string querry;
-    querry = "CREATE TABLE IF NOT EXISTS games ( game_id INTEGER PRIMARY KEY, white_player INTEGER, black_player INTEGER, game TEXT, time TEXT, FOREIGN KEY (white_player) REFERENCES users(id), FOREIGN KEY (black_player) REFERENCES users(id) );";
-    db.CreateTable(querry.c_str());
-    // querry = "DROP TABLE games;";
+    // string querry;
+    // querry = "DROP TABLE friends;";
+    // db.SelectData(querry.c_str(), displayCallback);
+    // querry = "CREATE TABLE IF NOT EXISTS friends ( friendship_id INTEGER PRIMARY KEY, user_1 INTEGER, user_2 INTEGER, FOREIGN KEY (user_1) REFERENCES users(id), FOREIGN KEY (user_2) REFERENCES users(id) );";
+    // db.CreateTable(querry.c_str());
+    // querry = "SELECT * FROM friends;";
+    // db.SelectData(querry.c_str(), displayCallback);
+    // return 0;
+    // querry = "DROP TABLE friends;";
     // db.SelectData(querry.c_str(), displayCallback);
     while (true)
     {

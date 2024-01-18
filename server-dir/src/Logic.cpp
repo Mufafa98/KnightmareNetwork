@@ -8,7 +8,7 @@ void LoginLogic(ClientInfo &info)
     char pass[20];
     recv(info.socket, user, sizeof(user), 0);
     recv(info.socket, pass, sizeof(pass), 0);
-    cout << "Recived Login command : User - " << user << " Password - " << pass << '\n';
+    cout << "Recived Login command : User - " << user << " Password - *****" << '\n';
     if (strcmp(user, "") == 0 || strcmp(pass, "") == 0)
     {
         server_response = LogicCodes::VoidInput;
@@ -53,7 +53,7 @@ void RegisterLogic(ClientInfo &info)
     char pass[20];
     recv(info.socket, user, sizeof(user), 0);
     recv(info.socket, pass, sizeof(pass), 0);
-    cout << "Recived Register command : User - " << user << " Password - " << pass << '\n';
+    cout << "Recived Register command : User - " << user << " Password - ***** " << '\n';
     if (strcmp(user, "") == 0 || strcmp(pass, "") == 0)
     {
         server_response = LogicCodes::VoidInput;
@@ -191,74 +191,6 @@ void BoardCommandLogic(ClientInfo &info, Engine &engine, GameInfo &game)
         send(info.socket, &server_response, sizeof(server_response), 0);
     }
 }
-
-// void BoardCommandMatchLogic(ClientInfo &info, Engine &engine, GameInfo &game)
-// {
-//     unsigned int client_command;
-//     unsigned int server_response = BoardCommands::None;
-//     if (game.color != engine.GetTurn())
-//         server_response = BoardCommands::NotYourTurn;
-//     else
-//         server_response = BoardCommands::YourTurn;
-//     send(info.socket, &server_response, sizeof(server_response), 0);
-//     recv(info.socket, &client_command, sizeof(client_command), 0);
-//     if (client_command == BoardCommands::FirstPos)
-//     {
-//         int x, y;
-//         recv(info.socket, &x, sizeof(x), 0);
-//         recv(info.socket, &y, sizeof(y), 0);
-//         game.first_pos = Vector2i(x, y);
-//         if (engine.SelectSquare(game.first_pos))
-//         {
-//             server_response = BoardCommands::SelectSquare;
-//             send(info.socket, &server_response, sizeof(server_response), 0);
-//             bool selected_sq[8][8];
-//             engine.HighlightLegalMoves(Vector2i(x, y));
-//             engine.GetHighlightedArray(selected_sq);
-//             send(info.socket, &selected_sq, sizeof(selected_sq), 0);
-//         }
-//         else
-//         {
-//             server_response = BoardCommands::None;
-//             send(info.socket, &server_response, sizeof(server_response), 0);
-//         }
-//     }
-//     else if (client_command == BoardCommands::SecondPos)
-//     {
-//         int x, y;
-//         recv(info.socket, &x, sizeof(x), 0);
-//         recv(info.socket, &y, sizeof(y), 0);
-//         game.second_pos = Vector2i(x, y);
-//         unsigned int server_response;
-//         if (engine.MakeMoveIfLegal(game.first_pos, game.second_pos, 0))
-//             server_response = BoardCommands::MovePiece;
-//         else
-//             server_response = BoardCommands::None;
-//         send(info.socket, &server_response, sizeof(server_response), 0);
-//         if (server_response == BoardCommands::MovePiece)
-//         {
-//             if (engine.PawnNeedsPromotion())
-//             {
-//                 server_response = BoardCommands::NeedPromotion;
-//                 send(info.socket, &server_response, sizeof(server_response), 0);
-//             }
-//             else
-//             {
-//                 server_response = BoardCommands::None;
-//                 send(info.socket, &server_response, sizeof(server_response), 0);
-//             }
-//         }
-//     }
-//     else if (client_command == BoardCommands::PromotePawn)
-//     {
-//         cout << "recived promote pawn\n";
-//         unsigned int piece_id;
-//         recv(info.socket, &piece_id, sizeof(piece_id), 0);
-//         engine.PromotePawn(piece_id);
-//         unsigned int server_response = BoardCommands::None;
-//         send(info.socket, &server_response, sizeof(server_response), 0);
-//     }
-// }
 
 stack<int> waiting_list;
 mutex waiting_list_mutex;
@@ -551,4 +483,267 @@ unsigned int PlayLogic(ClientInfo &info, Engine &engine, GameInfo &game)
         }
     }
     return -1;
+}
+
+void SocialLogic(ClientInfo &info)
+{
+    unsigned int client_command;
+    unsigned int server_response;
+    recv(info.socket, &client_command, sizeof(client_command), 0);
+    if (client_command == SearchCommands::GetGames)
+    {
+        string querry = "SELECT game_id, white_player, black_player, time FROM games";
+        QueueGDI results;
+        info.db->SelectData(querry.c_str(), GetGamesInStack, &results);
+        while (!results.results.empty())
+        {
+            GameDbInfo temp = results.results.front();
+            results.results.pop();
+            char username[20];
+            querry = "SELECT USERNAME FROM USERS WHERE ID = ";
+            querry += temp.white_player;
+            querry += ";";
+            info.db->SelectData(querry.c_str(), CheckDataReq, username);
+            string username_wid = username;
+            username_wid += " #";
+            username_wid += temp.white_player;
+            strcpy(temp.white_player, username_wid.c_str());
+            querry = "SELECT USERNAME FROM USERS WHERE ID = ";
+            querry += temp.black_player;
+            querry += ";";
+            info.db->SelectData(querry.c_str(), CheckDataReq, username);
+            username_wid = username;
+            username_wid += " #";
+            username_wid += temp.black_player;
+            strcpy(temp.black_player, username_wid.c_str());
+
+            server_response = SearchCommands::NoneSearch;
+            send(info.socket, &server_response, sizeof(server_response), 0);
+            send(info.socket, &temp, sizeof(temp), 0);
+        }
+        server_response = SearchCommands::LastElement;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+        querry = "SELECT count(game_id) FROM games";
+        int line_no;
+        info.db->SelectData(querry.c_str(), GetLineNo, line_no);
+        server_response = line_no;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+    }
+    else if (client_command == SearchCommands::GetGamesById)
+    {
+        char id[10];
+        recv(info.socket, id, sizeof(id), 0);
+        string querry = "SELECT game_id, white_player, black_player, time FROM games WHERE game_id LIKE '%";
+        querry += string(id) + "%';";
+        QueueGDI results;
+        info.db->SelectData(querry.c_str(), GetGamesInStack, &results);
+        while (!results.results.empty())
+        {
+            GameDbInfo temp = results.results.front();
+            results.results.pop();
+            char username[20];
+            querry = "SELECT USERNAME FROM USERS WHERE ID = ";
+            querry += temp.white_player;
+            querry += ";";
+            info.db->SelectData(querry.c_str(), CheckDataReq, username);
+            string username_wid = username;
+            username_wid += " #";
+            username_wid += temp.white_player;
+            strcpy(temp.white_player, username_wid.c_str());
+            querry = "SELECT USERNAME FROM USERS WHERE ID = ";
+            querry += temp.black_player;
+            querry += ";";
+            info.db->SelectData(querry.c_str(), CheckDataReq, username);
+            username_wid = username;
+            username_wid += " #";
+            username_wid += temp.black_player;
+            strcpy(temp.black_player, username_wid.c_str());
+
+            server_response = SearchCommands::NoneSearch;
+            send(info.socket, &server_response, sizeof(server_response), 0);
+            send(info.socket, &temp, sizeof(temp), 0);
+        }
+        server_response = SearchCommands::LastElement;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+        querry = "SELECT COUNT(game_id) FROM games WHERE game_id LIKE '%";
+        querry += string(id) + "%';";
+        int line_no;
+        info.db->SelectData(querry.c_str(), GetLineNo, line_no);
+        server_response = line_no;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+    }
+    else if (client_command == SearchCommands::GetUsers)
+    {
+        string querry = "SELECT * FROM users";
+        QueueUDI results;
+        info.db->SelectData(querry.c_str(), GetUsersInStack, &results);
+        while (!results.results.empty())
+        {
+            UserDbInfo temp = results.results.front();
+            results.results.pop();
+            server_response = SearchCommands::NoneSearch;
+            send(info.socket, &server_response, sizeof(server_response), 0);
+            send(info.socket, &temp, sizeof(temp), 0);
+        }
+        server_response = SearchCommands::LastElement;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+        querry = "SELECT count(id) FROM users";
+        int line_no;
+        info.db->SelectData(querry.c_str(), GetLineNo, line_no);
+        server_response = line_no;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+    }
+    else if (client_command == SearchCommands::GetUsersById)
+    {
+        char id[10];
+        recv(info.socket, id, sizeof(id), 0);
+        string querry = "SELECT * FROM users WHERE id LIKE '%";
+        querry += string(id) + "%';";
+        QueueUDI results;
+        info.db->SelectData(querry.c_str(), GetUsersInStack, &results);
+        while (!results.results.empty())
+        {
+            UserDbInfo temp = results.results.front();
+            results.results.pop();
+            server_response = SearchCommands::NoneSearch;
+            send(info.socket, &server_response, sizeof(server_response), 0);
+            send(info.socket, &temp, sizeof(temp), 0);
+        }
+        server_response = SearchCommands::LastElement;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+        querry = "SELECT count(id) FROM users WHERE id LIKE '%";
+        querry += string(id) + "%';";
+        int line_no;
+        info.db->SelectData(querry.c_str(), GetLineNo, line_no);
+        server_response = line_no;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+    }
+    else if (client_command == SearchCommands::SendFriendRequest)
+    {
+        char id[10];
+        recv(info.socket, id, sizeof(id), 0);
+        string querry;
+        querry = "SELECT COUNT(*) FROM friends WHERE ( user_1 = " + string(id) + " and user_2 = " + to_string(info.perm_id);
+        querry += " ) OR ( user_1 = " + to_string(info.perm_id) + " and user_2 = " + string(id) + " );";
+        int result;
+        info.db->SelectData(querry.c_str(), GetLineNo, result);
+        if (strcmp(id, to_string(info.perm_id).c_str()) == 0 || result > 0)
+            return;
+        querry = "INSERT INTO friends (user_1, user_2) VALUES (";
+        querry += to_string(info.perm_id) + ", " + id + ");";
+        info.db->InsertData(querry.c_str());
+    }
+    else if (client_command == SearchCommands::GetGame)
+    {
+        char id[10];
+        recv(info.socket, id, sizeof(id), 0);
+        string game;
+        string querry = "SELECT game FROM GAMES WHERE game_id = " + string(id) + ";";
+        info.db->SelectData(querry.c_str(), GetGamePos, &game);
+        size_t size = game.size();
+        send(info.socket, &size, sizeof(size), 0);
+        for (size_t i = 0; i < size; i++)
+        {
+            send(info.socket, &game.c_str()[i], sizeof(char), 0);
+        }
+    }
+    else if (client_command == SearchCommands::GetFriends)
+    {
+        string querry = "SELECT * FROM friends WHERE user_1 = " + to_string(info.perm_id) + " OR user_2 = " + to_string(info.perm_id) + ";";
+        QueueS results;
+        info.db->SelectData(querry.c_str(), GetFriendsInStack, &results);
+        while (!results.result1.empty())
+        {
+            string _temp = results.result1.front();
+            if (to_string(info.perm_id) == _temp)
+            {
+                _temp = results.result2.front();
+                results.result2.pop();
+            }
+            querry = "SELECT username FROM users WHERE id = " + _temp + " ;";
+            char temp[20];
+            info.db->SelectData(querry.c_str(), CheckDataReq, temp);
+            results.result1.pop();
+            server_response = SearchCommands::NoneSearch;
+            send(info.socket, &server_response, sizeof(server_response), 0);
+            send(info.socket, temp, sizeof(temp), 0);
+        }
+        server_response = SearchCommands::LastElement;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+        querry = "SELECT COUNT(*) FROM friends WHERE user_1 = " + to_string(info.perm_id) + " OR user_2 = " + to_string(info.perm_id) + ";";
+        int line_no;
+        info.db->SelectData(querry.c_str(), GetLineNo, line_no);
+        server_response = line_no;
+        send(info.socket, &server_response, sizeof(server_response), 0);
+    }
+}
+
+int GetGamesInStack(void *data, int argc, char **argv, char **colNames)
+{
+    QueueGDI *result_ptr = static_cast<QueueGDI *>(data);
+    GameDbInfo temp;
+
+    for (int i = 0; i < argc; ++i)
+    {
+        if (strcmp(colNames[i], "game_id") == 0)
+            strcpy(temp.game_id, argv[i]);
+        else if (strcmp(colNames[i], "white_player") == 0)
+            strcpy(temp.white_player, argv[i]);
+        else if (strcmp(colNames[i], "black_player") == 0)
+            strcpy(temp.black_player, argv[i]);
+        else if (strcmp(colNames[i], "time") == 0)
+            strcpy(temp.time, argv[i]);
+    }
+    result_ptr->results.push(temp);
+    return 0;
+}
+
+int GetUsersInStack(void *data, int argc, char **argv, char **colNames)
+{
+    QueueUDI *result_ptr = static_cast<QueueUDI *>(data);
+    UserDbInfo temp;
+
+    for (int i = 0; i < argc; ++i)
+    {
+        if (strcmp(colNames[i], "id") == 0)
+            strcpy(temp.user_id, argv[i]);
+        else if (strcmp(colNames[i], "username") == 0)
+            strcpy(temp.username, argv[i]);
+    }
+    result_ptr->results.push(temp);
+    return 0;
+}
+
+int GetFriendsInStack(void *data, int argc, char **argv, char **colNames)
+{
+    QueueS *result_ptr = static_cast<QueueS *>(data);
+    string temp1;
+    string temp2;
+
+    for (int i = 0; i < argc; ++i)
+    {
+        if (strcmp(colNames[i], "user_1") == 0)
+            temp1 = argv[i];
+        if (strcmp(colNames[i], "user_2") == 0)
+            temp2 = argv[i];
+    }
+    result_ptr->result1.push(temp1);
+    result_ptr->result2.push(temp2);
+    return 0;
+}
+
+int GetLineNo(void *data, int argc, char **argv, char **colNames)
+{
+    int *result_ptr = static_cast<int *>(data);
+    *result_ptr = atoi(argv[0]);
+    return 0;
+}
+
+int GetGamePos(void *data, int argc, char **argv, char **colNames)
+{
+    string *result_ptr = static_cast<string *>(data);
+
+    for (size_t i = 0; i < strlen(argv[0]); i++)
+        result_ptr->push_back(argv[0][i]);
+    return 0;
 }

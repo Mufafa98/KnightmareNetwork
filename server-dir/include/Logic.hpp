@@ -29,3 +29,10 @@ int CheckDataReq(void *data, int argc, char **argv, char **colNames);
 void BoardCommandLogic(ClientInfo &info, Engine &engine, GameInfo &game);
 
 unsigned int PlayLogic(ClientInfo &info, Engine &engine, GameInfo &game);
+
+void SocialLogic(ClientInfo &info);
+int GetGamesInStack(void *data, int argc, char **argv, char **colNames);
+int GetUsersInStack(void *data, int argc, char **argv, char **colNames);
+int GetFriendsInStack(void *data, int argc, char **argv, char **colNames);
+int GetLineNo(void *data, int argc, char **argv, char **colNames);
+int GetGamePos(void *data, int argc, char **argv, char **colNames);
